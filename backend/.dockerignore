@@ -47,6 +47,3 @@ build/
 # Logs
 *.log
 
-# Problems list (will be copied separately if needed)
-problems_list
-
