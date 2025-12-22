@@ -1,0 +1,176 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../services/api";
+
+export default function ProblemLibrary() {
+  const [problems, setProblems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [difficultyFilter, setDifficultyFilter] = useState("");
+  const navigate = useNavigate();
+
+  const fetchProblems = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/problems");
+      setProblems(res.data || []);
+    } catch (e) {
+      setError("Could not load problems. Is the backend running?");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProblems();
+  }, []);
+
+  const handleDelete = async (id) => {
+    const ok = window.confirm(
+      "Delete this problem? This cannot be undone (notes and history will be lost)."
+    );
+    if (!ok) return;
+
+    try {
+      await api.delete(`/problems/${id}`);
+      await fetchProblems();
+    } catch {
+      setError("Failed to delete problem. Try again.");
+    }
+  };
+
+  const filtered = problems.filter((p) => {
+    const matchesSearch = p.title
+      ?.toLowerCase()
+      .includes(search.toLowerCase());
+    const matchesDifficulty = difficultyFilter
+      ? p.difficulty === difficultyFilter
+      : true;
+    return matchesSearch && matchesDifficulty;
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight">
+            Problem Library
+          </h2>
+          <p className="text-sm text-slate-500">
+            Searchable list of all problems you&apos;ve added.
+          </p>
+        </div>
+        <Link to="/problems/new">
+          <button className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-600">
+            Add Problem
+          </button>
+        </Link>
+      </div>
+
+      <div className="rounded-xl bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary sm:w-64"
+            placeholder="Search by title..."
+          />
+          <select
+            value={difficultyFilter}
+            onChange={(e) => setDifficultyFilter(e.target.value)}
+            className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">All Difficulties</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+
+        {loading ? (
+          <div className="border border-dashed border-slate-200 rounded-lg p-6 text-center text-sm text-slate-500">
+            Loading problems...
+          </div>
+        ) : error ? (
+          <div className="border border-red-200 bg-red-50 rounded-lg p-4 text-sm text-red-700">
+            {error}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="border border-dashed border-slate-200 rounded-lg p-6 text-center text-sm text-slate-500">
+            No problems yet. Click <span className="font-medium">Add Problem</span> to
+            create your first one.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
+                  <th className="py-2 pr-4">Title</th>
+                  <th className="py-2 pr-4">Difficulty</th>
+                  <th className="py-2 pr-4">Tags</th>
+                  <th className="py-2 pr-4">Platform</th>
+                  <th className="py-2 pr-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((p) => (
+                  <tr
+                    key={p.id}
+                    className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50"
+                  >
+                    <td className="py-2 pr-4">
+                      {p.url ? (
+                        <a
+                          href={p.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          {p.title}
+                        </a>
+                      ) : (
+                        <span className="text-slate-800">{p.title}</span>
+                      )}
+                    </td>
+                    <td className="py-2 pr-4 capitalize text-xs">
+                      <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5">
+                        {p.difficulty || "—"}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-4 text-xs text-slate-600">
+                      {Array.isArray(p.tags) && p.tags.length > 0
+                        ? p.tags.join(", ")
+                        : "—"}
+                    </td>
+                    <td className="py-2 pr-4 text-xs text-slate-500">
+                      {p.platform || "leetcode"}
+                    </td>
+                    <td className="py-2 pr-4 text-xs text-right">
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/problems/${p.id}/edit`)}
+                        className="rounded border border-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-600 hover:bg-slate-100 mr-1"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(p.id)}
+                        className="rounded border border-red-200 px-2 py-0.5 text-[11px] font-medium text-red-600 hover:bg-red-50"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
