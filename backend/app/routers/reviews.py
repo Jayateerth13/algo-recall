@@ -2,10 +2,10 @@ from datetime import datetime, timedelta
 from typing import List
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
+from ..auth import CurrentUser, get_current_user
 from ..database import get_db
 
 router = APIRouter()
@@ -27,23 +27,31 @@ def _get_or_create_metadata(db: Session, problem_id: int) -> models.ReviewMetada
 
 
 @router.get("/due", response_model=List[schemas.ProblemWithReview])
-def get_due_reviews(db: Session = Depends(get_db)):
-    """For now, return all problems as reviewable cards (no due-date logic).
-
-    This keeps the client simple flashcards-only while still using the DB
-    as the single source of truth.
-    """
-    return db.query(models.Problem).order_by(models.Problem.id.asc()).all()
+def get_due_reviews(
+    db: Session = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+):
+    """Return all problems for the current user as reviewable cards."""
+    return (
+        db.query(models.Problem)
+        .filter(models.Problem.user_id == current_user.id)
+        .order_by(models.Problem.id.asc())
+        .all()
+    )
 
 
 @router.post("/", response_model=schemas.ReviewHistory)
 def create_review(
     payload: schemas.ReviewHistoryCreate,
     db: Session = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
 ):
     problem = (
         db.query(models.Problem)
-        .filter(models.Problem.id == payload.problem_id)
+        .filter(
+            models.Problem.id == payload.problem_id,
+            models.Problem.user_id == current_user.id,
+        )
         .first()
     )
     if not problem:
@@ -73,6 +81,7 @@ def create_review(
         problem_id=payload.problem_id,
         result=payload.result,
         next_review_date=metadata.next_review_due,
+        user_id=current_user.id,
     )
     db.add(review)
     db.commit()
@@ -81,12 +90,26 @@ def create_review(
 
 
 @router.get("/stats", response_model=schemas.DashboardStats)
-def get_stats(db: Session = Depends(get_db)):
-    total_problems = db.query(models.Problem).count()
-    total_reviews = db.query(models.ReviewHistory).count()
+def get_stats(
+    db: Session = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+):
+    total_problems = (
+        db.query(models.Problem)
+        .filter(models.Problem.user_id == current_user.id)
+        .count()
+    )
+    total_reviews = (
+        db.query(models.ReviewHistory)
+        .filter(models.ReviewHistory.user_id == current_user.id)
+        .count()
+    )
     remembered = (
         db.query(models.ReviewHistory)
-        .filter(models.ReviewHistory.result == "remembered")
+        .filter(
+            models.ReviewHistory.user_id == current_user.id,
+            models.ReviewHistory.result == "remembered",
+        )
         .count()
     )
 
@@ -95,6 +118,7 @@ def get_stats(db: Session = Depends(get_db)):
     # Simple streak: count days with at least one review, up to last continuous segment
     dates = (
         db.query(models.ReviewHistory.reviewed_at)
+        .filter(models.ReviewHistory.user_id == current_user.id)
         .order_by(models.ReviewHistory.reviewed_at.desc())
         .all()
     )
@@ -121,9 +145,14 @@ def get_stats(db: Session = Depends(get_db)):
 
 
 @router.put("/{problem_id}/reset")
-def reset_review(problem_id: int, db: Session = Depends(get_db)):
+def reset_review(
+    problem_id: int,
+    db: Session = Depends(get_db),
+    current_user: CurrentUser = Depends(get_current_user),
+):
     db.query(models.ReviewHistory).filter(
-        models.ReviewHistory.problem_id == problem_id
+        models.ReviewHistory.problem_id == problem_id,
+        models.ReviewHistory.user_id == current_user.id,
     ).delete()
     db.query(models.ReviewMetadata).filter(
         models.ReviewMetadata.problem_id == problem_id
@@ -132,7 +161,10 @@ def reset_review(problem_id: int, db: Session = Depends(get_db)):
     # Also reset the simple status flag on the problem.
     problem = (
         db.query(models.Problem)
-        .filter(models.Problem.id == problem_id)
+        .filter(
+            models.Problem.id == problem_id,
+            models.Problem.user_id == current_user.id,
+        )
         .first()
     )
     if problem:

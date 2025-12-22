@@ -1,30 +1,28 @@
 ## LeetCode Algorithm Flashcard App
 
-This repository contains a full‑stack app for practicing LeetCode‑style algorithm problems using a spaced‑repetition flashcard system.
+Practice LeetCode-style problems with spaced repetition. Each user has their own problem set and review history.
 
-- **Backend**: FastAPI + SQLite (in `backend/`)
-- **Frontend**: React + Vite + Tailwind CSS (in `frontend/`)
+### Stack
+- Backend: FastAPI (in `backend/`)
+- Frontend: React + Vite + Tailwind (in `frontend/`)
+- Database: PostgreSQL (Supabase) with per-user scoping
+- Auth: Supabase Auth (email/password + optional Google)
 
-### Getting Started
-
-**Backend**
-
+### Run locally
 ```bash
+# Backend
 cd backend
 python -m venv venv
 venv\Scripts\activate  # Windows
 pip install -r requirements.txt
 uvicorn app.main:app --reload
-```
 
-**Frontend**
-
-```bash
+# Frontend (new shell)
 cd frontend
 npm install
 npm run dev
 ```
 
-The high‑level feature and design specification lives in `leetcode_flashcard_readme.md`.
-
-
+### Notes
+- For local dev, run backend and frontend as above.
+- Production deploys typically use a managed Postgres and serverless hosting.

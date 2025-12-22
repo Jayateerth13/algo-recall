@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import models  # noqa: F401  # imported for side-effects (SQLAlchemy models)
-from .database import init_db
+from .database import init_db, ensure_user_columns, DATABASE_URL
 from .routers import problems, reviews, import_routes
 from .health import router as health_router
 from .seed import seed_problems_from_list
@@ -44,8 +44,15 @@ def create_app() -> FastAPI:
 
     @app.on_event("startup")
     async def on_startup() -> None:  # pragma: no cover - simple bootstrap
+        # Always ensure tables exist
         init_db()
-        seed_problems_from_list()
+        # Ensure per-user columns exist
+        ensure_user_columns()
+
+        # For local SQLite development, seed once globally.
+        # For managed Postgres (Supabase), we seed per-user in the API layer instead.
+        if not DATABASE_URL:
+            seed_problems_from_list()
 
     return app
 

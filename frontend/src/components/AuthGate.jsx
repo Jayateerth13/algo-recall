@@ -1,0 +1,220 @@
+import { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
+
+export default function AuthGate({ children }) {
+  const { user, loading, signIn, signUp, signInWithGoogle } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [mode, setMode] = useState("signin"); // 'signin' | 'signup'
+  const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-slate-600 text-sm">Loading...</div>
+      </div>
+    );
+  }
+
+  if (user) {
+    return children;
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError("");
+    setInfo("");
+
+    if (!email || !password) {
+      setError("Email and password are required.");
+      setSubmitting(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      setSubmitting(false);
+      return;
+    }
+
+    if (mode === "signup") {
+      if (password !== confirmPassword) {
+        setError("Passwords do not match.");
+        setSubmitting(false);
+        return;
+      }
+    }
+
+    try {
+      if (mode === "signin") {
+        const { error: supaError } = await signIn(email, password);
+        if (supaError) setError(supaError.message);
+      } else {
+        const { error: supaError } = await signUp(email, password);
+        if (supaError) {
+          setError(supaError.message);
+        } else {
+          setInfo("Check your email to verify your account, then sign in.");
+          setMode("signin");
+        }
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleGoogle() {
+    setError("");
+    setInfo("");
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      setError(err.message || "Google sign-in failed");
+    }
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+      <div className="w-full max-w-md rounded-lg bg-white shadow-sm border border-slate-200 p-6 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white font-bold">
+            LC
+          </span>
+          <div>
+            <h1 className="text-base font-semibold text-slate-900">
+              LeetCode Algorithm Flashcards
+            </h1>
+            <p className="text-xs text-slate-500">
+              Sign in to see your personal flashcards & progress.
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-slate-700">
+              Email
+            </label>
+            <input
+              type="email"
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-slate-700">
+              Password
+            </label>
+            <input
+              type="password"
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+            />
+            <p className="text-[11px] text-slate-500">
+              Minimum 6 characters. Use a strong password.
+            </p>
+          </div>
+
+          {mode === "signup" && (
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-slate-700">
+                Confirm password
+              </label>
+              <input
+                type="password"
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
+          )}
+
+          {error && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded px-2 py-1">
+              {error}
+            </p>
+          )}
+          {info && (
+            <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded px-2 py-1">
+              {info}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full inline-flex items-center justify-center rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+          >
+            {submitting
+              ? "Please wait..."
+              : mode === "signin"
+              ? "Sign in"
+              : "Create account"}
+          </button>
+        </form>
+
+        <div className="flex items-center gap-2">
+          <div className="h-px flex-1 bg-slate-200" />
+          <span className="text-[10px] uppercase tracking-wide text-slate-400">
+            or
+          </span>
+          <div className="h-px flex-1 bg-slate-200" />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogle}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        >
+          <span>Continue with Google</span>
+        </button>
+
+        <div className="space-y-1 text-xs text-slate-500">
+          {mode === "signin" ? (
+            <p>
+              New here?{" "}
+              <button
+                type="button"
+                onClick={() => setMode("signup")}
+                className="text-slate-800 font-medium hover:underline"
+              >
+                Create an account
+              </button>
+            </p>
+          ) : (
+            <p>
+              Already have an account?{" "}
+              <button
+                type="button"
+                onClick={() => setMode("signin")}
+                className="text-slate-800 font-medium hover:underline"
+              >
+                Sign in
+              </button>
+            </p>
+          )}
+          {mode === "signup" && (
+            <p className="text-[11px] text-slate-500">
+              After signing up, check your email to verify before signing in.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+

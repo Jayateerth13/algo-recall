@@ -18,6 +18,8 @@ class Problem(Base):
     __tablename__ = "problems"
 
     id = Column(Integer, primary_key=True, index=True)
+    # Supabase auth user id (UUID as string)
+    user_id = Column(String, index=True, nullable=True)
     title = Column(String, nullable=False, index=True)
     url = Column(String, nullable=True)
     difficulty = Column(String, nullable=True, index=True)  # easy/medium/hard
@@ -43,6 +45,8 @@ class ReviewHistory(Base):
     __tablename__ = "review_history"
 
     id = Column(Integer, primary_key=True, index=True)
+    # Supabase auth user id (UUID as string)
+    user_id = Column(String, index=True, nullable=True)
     problem_id = Column(Integer, ForeignKey("problems.id"), index=True)
     reviewed_at = Column(DateTime, default=datetime.utcnow, index=True)
     result = Column(String, nullable=False)  # remembered / forgot
