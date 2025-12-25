@@ -8,6 +8,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
 
 export default function FlashcardReview() {
   const [problems, setProblems] = useState([]);
@@ -188,7 +194,7 @@ export default function FlashcardReview() {
         <h2 className="text-2xl font-semibold tracking-tight">
           Flashcard Review
         </h2>
-        <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-base text-red-700">
+        <div className="rounded-2xl bg-red-200 border-2 border-red-500 p-4 text-sm text-red-900 font-semibold">
           {error}
         </div>
       </div>
@@ -209,37 +215,38 @@ export default function FlashcardReview() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-3">
+    <TooltipProvider>
+      <div className="mx-auto max-w-6xl space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">
             Flashcard Review
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-600">
             Compact 30-day style sheet; click any problem to see
             full details.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 text-xs">
-          <div className="flex items-center gap-1">
-            <span className="inline-block h-3 w-3 rounded bg-emerald-200" />{" "}
-            <span>Remembered</span>
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-4 w-4 rounded bg-emerald-400 border border-emerald-600" />{" "}
+            <span className="font-medium">Remembered</span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="inline-block h-3 w-3 rounded bg-red-200" />{" "}
-            <span>Didn&apos;t remember</span>
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-4 w-4 rounded bg-red-400 border border-red-600" />{" "}
+            <span className="font-medium">Didn&apos;t remember</span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="inline-block h-3 w-3 rounded bg-white border border-slate-200" />{" "}
-            <span>Not reviewed yet</span>
+          <div className="flex items-center gap-2">
+            <span className="inline-block h-4 w-4 rounded bg-white border-2 border-slate-300" />{" "}
+            <span className="font-medium">Not reviewed yet</span>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 text-base">
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
         <div className="flex flex-wrap gap-3 items-end">
           <div>
-            <label className="block text-sm font-medium text-slate-600">
+            <label className="block text-sm font-medium text-slate-700">
               Days
             </label>
             <input
@@ -252,11 +259,11 @@ export default function FlashcardReview() {
                   Math.max(1, Math.min(60, Number(e.target.value) || 1))
                 )
               }
-              className="mt-1 w-24 rounded-lg border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="mt-1 w-24 rounded-lg border-2 border-slate-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-600">
+            <label className="block text-sm font-medium text-slate-700">
               Problems / day
             </label>
             <input
@@ -269,7 +276,7 @@ export default function FlashcardReview() {
                   Math.max(1, Math.min(20, Number(e.target.value) || 1))
                 )
               }
-              className="mt-1 w-28 rounded-lg border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="mt-1 w-28 rounded-lg border-2 border-slate-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
         </div>
@@ -277,10 +284,10 @@ export default function FlashcardReview() {
           <button
             type="button"
             onClick={handleDefaultOrder}
-            className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium ${
+            className={`inline-flex items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs font-medium ${
               !shuffleMode
                 ? "border-slate-900 bg-slate-900 text-white"
-                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
             }`}
           >
             <span>≡</span>
@@ -289,10 +296,10 @@ export default function FlashcardReview() {
           <button
             type="button"
             onClick={handleShuffleClick}
-            className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium ${
+            className={`inline-flex items-center gap-1 rounded-lg border-2 px-3 py-1.5 text-xs font-medium ${
               shuffleMode
                 ? "border-slate-900 bg-slate-900 text-white"
-                : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
             }`}
           >
             <span>🔀</span>
@@ -301,7 +308,7 @@ export default function FlashcardReview() {
           <button
             type="button"
             onClick={handleResetAllClick}
-            className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-100"
+            className="inline-flex items-center gap-1 rounded-lg border-2 border-red-500 bg-red-200 px-3 py-1.5 text-xs font-semibold text-red-900 hover:bg-red-300"
           >
             Reset
           </button>
@@ -316,19 +323,25 @@ export default function FlashcardReview() {
               className="rounded-xl border border-slate-100 bg-slate-50/60 p-3"
             >
               <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="font-semibold text-slate-800">
+                <span className="font-bold text-slate-900">
                   Day {dayBlock.day}
                 </span>
                 <span className="flex items-center gap-2">
                   {dayBlock.problems.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => resetDayClick(dayBlock.problems)}
-                      className="rounded-full border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:bg-slate-100"
-                      title="Reset this day"
-                    >
-                      ⟳
-                    </button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => resetDayClick(dayBlock.problems)}
+                          className="rounded-full w-6 h-6 flex items-center justify-center border-2 border-slate-300 text-xs font-medium text-slate-600 hover:bg-slate-200"
+                        >
+                          ⟳
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Reset all problems for this day</p>
+                      </TooltipContent>
+                    </Tooltip>
                   )}
                 </span>
               </div>
@@ -341,13 +354,24 @@ export default function FlashcardReview() {
                   {dayBlock.problems.map((p) => {
                     const status = statusById[p.id];
                     const base =
-                      "flex items-center justify-between gap-2 rounded-lg border px-3 py-1.5 text-sm cursor-pointer";
+                      "flex items-center justify-between gap-2 rounded-lg border-2 px-4 py-2 text-sm cursor-pointer font-medium";
                     const colorClasses =
                       status === "remembered"
-                        ? "bg-emerald-50 border-emerald-200"
+                        ? "bg-emerald-200 border-emerald-500 text-emerald-900"
                         : status === "forgot"
-                        ? "bg-red-50 border-red-200"
-                        : "bg-white border-slate-200 hover:bg-slate-50";
+                        ? "bg-red-200 border-red-500 text-red-900"
+                        : "bg-white border-slate-300 hover:bg-slate-50 text-slate-800";
+
+                    // Icon button styles based on status
+                    // Background only when selected, otherwise just border and text color
+                    const rememberedIconClass = status === "remembered"
+                      ? "bg-emerald-400 border-emerald-600 text-emerald-900 hover:bg-emerald-500"
+                      : "bg-transparent border-emerald-400 text-emerald-700 hover:bg-emerald-200";
+                    const forgotIconClass = status === "forgot"
+                      ? "bg-red-400 border-red-600 text-red-900 hover:bg-red-500"
+                      : "bg-transparent border-red-400 text-red-700 hover:bg-red-200";
+                    // Reset button always stays neutral with no background
+                    const resetIconClass = "bg-transparent border-slate-300 text-slate-600 hover:bg-slate-200";
 
                     return (
                       <li
@@ -355,41 +379,61 @@ export default function FlashcardReview() {
                         className={`${base} ${colorClasses} cursor-pointer`}
                         onClick={() => setSelectedId(p.id)}
                       >
-                        <span className="truncate text-slate-800">
+                        <span className="truncate">
                           {p.title}
                         </span>
-                        <span className="flex gap-1 items-center">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              markStatus(p.id, "remembered");
-                            }}
-                            className="rounded px-1.5 py-0.5 text-[11px] font-medium text-emerald-700 hover:bg-emerald-100"
-                          >
-                            ✓
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              markStatus(p.id, "forgot");
-                            }}
-                            className="rounded px-1.5 py-0.5 text-[11px] font-medium text-red-700 hover:bg-red-100"
-                          >
-                            ×
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              resetProblem(p.id);
-                            }}
-                            className="rounded px-1 py-0.5 text-[11px] font-medium text-slate-500 hover:bg-slate-100"
-                            title="Reset this problem"
-                          >
-                            ⟳
-                          </button>
+                        <span className="flex gap-1.5 items-center">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  markStatus(p.id, "remembered");
+                                }}
+                                className={`rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold border-2 ${rememberedIconClass}`}
+                              >
+                                ✓
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Mark as remembered</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  markStatus(p.id, "forgot");
+                                }}
+                                className={`rounded-full w-6 h-6 flex items-center justify-center text-xs font-semibold border-2 ${forgotIconClass}`}
+                              >
+                                ×
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Mark as not remembered</p>
+                            </TooltipContent>
+                          </Tooltip>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  resetProblem(p.id);
+                                }}
+                                className={`rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium border-2 ${resetIconClass}`}
+                              >
+                                ⟳
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Reset status</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </span>
                       </li>
                     );
@@ -408,7 +452,7 @@ export default function FlashcardReview() {
               <DialogHeader className="pr-10">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
-                    <DialogTitle className="text-lg font-semibold text-slate-900">
+                    <DialogTitle className="text-lg font-bold text-slate-900">
                       {selectedProblem.title}
                     </DialogTitle>
                     {selectedProblem.url && (
@@ -416,7 +460,7 @@ export default function FlashcardReview() {
                         href={selectedProblem.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-1 inline-block text-xs text-primary hover:underline"
+                        className="mt-1 inline-block text-xs text-primary hover:underline font-medium"
                       >
                         Open on LeetCode
                       </a>
@@ -424,7 +468,7 @@ export default function FlashcardReview() {
                   </div>
                   <Link
                     to={`/problems/${selectedProblem.id}/edit`}
-                    className="rounded-lg border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap"
+                    className="rounded-lg border-2 border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap"
                   >
                     Edit
                   </Link>
@@ -434,65 +478,65 @@ export default function FlashcardReview() {
               <div className="space-y-4 text-sm text-slate-700">
                 {selectedProblem.notes ? (
                   <div>
-                    <p className="font-medium text-slate-800 mb-1.5">Notes</p>
-                    <p className="whitespace-pre-line text-slate-600 max-h-48 overflow-auto rounded-md bg-slate-50 p-3 border border-slate-200">
+                    <p className="font-semibold text-slate-900 mb-2 text-base">Notes</p>
+                    <p className="whitespace-pre-line text-slate-700 max-h-48 overflow-auto rounded-md bg-slate-50 p-4 border-2 border-slate-200 text-sm">
                       {selectedProblem.notes}
                     </p>
                   </div>
                 ) : (
-                  <div className="rounded-md bg-slate-50 border border-slate-200 p-4 text-center">
+                  <div className="rounded-md bg-slate-50 border-2 border-slate-200 p-4 text-center">
                     <p className="text-slate-400 text-xs">No notes added yet</p>
                   </div>
                 )}
 
                 {selectedProblem.algorithm_steps ? (
                   <div>
-                    <p className="font-medium text-slate-800 mb-1.5">
+                    <p className="font-semibold text-slate-900 mb-2 text-base">
                       Algorithm Steps
                     </p>
-                    <p className="whitespace-pre-line text-slate-600 max-h-48 overflow-auto rounded-md bg-slate-50 p-3 border border-slate-200">
+                    <p className="whitespace-pre-line text-slate-700 max-h-48 overflow-auto rounded-md bg-slate-50 p-4 border-2 border-slate-200 text-sm">
                       {selectedProblem.algorithm_steps}
                     </p>
                   </div>
                 ) : (
-                  <div className="rounded-md bg-slate-50 border border-slate-200 p-4 text-center">
+                  <div className="rounded-md bg-slate-50 border-2 border-slate-200 p-4 text-center">
                     <p className="text-slate-400 text-xs">No algorithm steps added yet</p>
                   </div>
                 )}
 
                 {(selectedProblem.time_complexity ||
                   selectedProblem.space_complexity) ? (
-                  <div className="flex gap-4 text-slate-600">
+                  <div className="flex gap-4 text-slate-700 text-sm">
                     {selectedProblem.time_complexity && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-medium">Time:</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">Time:</span>
                         <span>{selectedProblem.time_complexity}</span>
                       </div>
                     )}
                     {selectedProblem.space_complexity && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-medium">Space:</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">Space:</span>
                         <span>{selectedProblem.space_complexity}</span>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="rounded-md bg-slate-50 border border-slate-200 p-4 text-center">
+                  <div className="rounded-md bg-slate-50 border-2 border-slate-200 p-4 text-center">
                     <p className="text-slate-400 text-xs">No complexity analysis added yet</p>
                   </div>
                 )}
 
                 {selectedProblem.code_snippet ? (
                   <div>
-                    <p className="font-medium text-slate-800 mb-1.5">
+                    <p className="font-semibold text-slate-900 mb-2 text-base">
                       Code Snippet
                     </p>
-                    <pre className="max-h-64 overflow-auto rounded-md bg-slate-900 p-4 text-xs text-slate-100 border border-slate-700">
+                    <pre className="max-h-64 overflow-auto rounded-md bg-slate-900 p-4 text-xs text-slate-100 border-2 border-slate-700">
                       {selectedProblem.code_snippet}
                     </pre>
                   </div>
                 ) : (
-                  <div className="rounded-md bg-slate-50 border border-slate-200 p-4 text-center">
+                  <div className="rounded-md bg-slate-50 border-2 border-slate-200 p-4 text-center">
                     <p className="text-slate-400 text-xs">No code snippet added yet</p>
                   </div>
                 )}
@@ -501,21 +545,21 @@ export default function FlashcardReview() {
                   <button
                     type="button"
                     onClick={() => markStatus(selectedProblem.id, "remembered")}
-                    className="flex-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100"
+                    className="flex-1 rounded-lg border-2 border-emerald-500 bg-emerald-200 px-4 py-2 text-sm font-semibold text-emerald-900 hover:bg-emerald-300"
                   >
                     Mark remembered
                   </button>
                   <button
                     type="button"
                     onClick={() => markStatus(selectedProblem.id, "forgot")}
-                    className="flex-1 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+                    className="flex-1 rounded-lg border-2 border-red-500 bg-red-200 px-4 py-2 text-sm font-semibold text-red-900 hover:bg-red-300"
                   >
                     Mark not remembered
                   </button>
                   <button
                     type="button"
                     onClick={() => resetProblem(selectedProblem.id)}
-                    className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                    className="rounded-lg border-2 border-slate-300 bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
                   >
                     Reset
                   </button>
@@ -547,7 +591,8 @@ export default function FlashcardReview() {
         onConfirm={resetDayConfirm}
         variant="destructive"
       />
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }
 

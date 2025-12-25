@@ -66,7 +66,7 @@ export default function ProblemLibrary() {
           <h2 className="text-xl font-semibold tracking-tight">
             Problem Library
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-600">
             Searchable list of all problems you&apos;ve added.
           </p>
         </div>
@@ -82,13 +82,13 @@ export default function ProblemLibrary() {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary sm:w-64"
+            className="w-full rounded-lg border-2 border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary sm:w-64"
             placeholder="Search by title..."
           />
           <select
             value={difficultyFilter}
             onChange={(e) => setDifficultyFilter(e.target.value)}
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            className="rounded-lg border-2 border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <option value="">All Difficulties</option>
             <option value="easy">Easy</option>
@@ -98,75 +98,75 @@ export default function ProblemLibrary() {
         </div>
 
         {loading ? (
-          <div className="border border-dashed border-slate-200 rounded-lg p-6 text-center text-sm text-slate-500">
+          <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center text-sm text-slate-600">
             Loading problems...
           </div>
         ) : error ? (
-          <div className="border border-red-200 bg-red-50 rounded-lg p-4 text-sm text-red-700">
+          <div className="border-2 border-red-400 bg-red-100 rounded-lg p-4 text-sm text-red-800 font-medium">
             {error}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="border border-dashed border-slate-200 rounded-lg p-6 text-center text-sm text-slate-500">
-            No problems yet. Click <span className="font-medium">Add Problem</span> to
+          <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center text-sm text-slate-600">
+            No problems yet. Click <span className="font-semibold">Add Problem</span> to
             create your first one.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
-                  <th className="py-2 pr-4">Title</th>
-                  <th className="py-2 pr-4">Difficulty</th>
-                  <th className="py-2 pr-4">Tags</th>
-                  <th className="py-2 pr-4">Platform</th>
-                  <th className="py-2 pr-4 text-right">Actions</th>
+                <tr className="border-b-2 border-slate-300 text-xs uppercase tracking-wide text-slate-700 font-semibold">
+                  <th className="py-3 pr-4">Title</th>
+                  <th className="py-3 pr-4">Difficulty</th>
+                  <th className="py-3 pr-4">Tags</th>
+                  <th className="py-3 pr-4">Platform</th>
+                  <th className="py-3 pr-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((p) => (
                   <tr
                     key={p.id}
-                    className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50"
+                    className="border-b border-slate-200 last:border-0 hover:bg-slate-50/50"
                   >
-                    <td className="py-2 pr-4">
+                    <td className="py-3 pr-4">
                       {p.url ? (
                         <a
                           href={p.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-primary hover:underline"
+                          className="text-primary hover:underline font-medium"
                         >
                           {p.title}
                         </a>
                       ) : (
-                        <span className="text-slate-800">{p.title}</span>
+                        <span className="text-slate-800 font-medium">{p.title}</span>
                       )}
                     </td>
-                    <td className="py-2 pr-4 capitalize text-xs">
-                      <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5">
+                    <td className="py-3 pr-4 capitalize text-xs">
+                      <span className="inline-flex rounded-full bg-slate-200 px-3 py-1 font-medium">
                         {p.difficulty || "—"}
                       </span>
                     </td>
-                    <td className="py-2 pr-4 text-xs text-slate-600">
+                    <td className="py-3 pr-4 text-xs text-slate-700">
                       {Array.isArray(p.tags) && p.tags.length > 0
                         ? p.tags.join(", ")
                         : "—"}
                     </td>
-                    <td className="py-2 pr-4 text-xs text-slate-500">
+                    <td className="py-3 pr-4 text-xs text-slate-600">
                       {p.platform || "leetcode"}
                     </td>
-                    <td className="py-2 pr-4 text-xs text-right">
+                    <td className="py-3 pr-4 text-xs text-right">
                       <button
                         type="button"
                         onClick={() => navigate(`/problems/${p.id}/edit`)}
-                        className="rounded border border-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-600 hover:bg-slate-100 mr-1"
+                        className="rounded border-2 border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100 mr-1"
                       >
                         Edit
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDeleteClick(p.id)}
-                        className="rounded border border-red-200 px-2 py-0.5 text-[11px] font-medium text-red-600 hover:bg-red-50"
+                        className="rounded border-2 border-red-400 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-100"
                       >
                         Delete
                       </button>
