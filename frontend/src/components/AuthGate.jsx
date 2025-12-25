@@ -68,7 +68,24 @@ export default function AuthGate({ children }) {
       } else {
         const { error: supaError } = await signUp(email, password);
         if (supaError) {
-          setError(supaError.message);
+          // Check for duplicate email/user already exists error
+          const errorMessage = supaError.message.toLowerCase();
+          if (
+            errorMessage.includes("already registered") ||
+            errorMessage.includes("user already exists") ||
+            errorMessage.includes("already exists") ||
+            supaError.message.includes("User already registered")
+          ) {
+            setError(
+              "An account with this email already exists. Please sign in instead, or use a different email address."
+            );
+            // Suggest switching to sign in mode
+            setTimeout(() => {
+              setMode("signin");
+            }, 2000);
+          } else {
+            setError(supaError.message);
+          }
         } else {
           setInfo(
             "Account created! Please check your email inbox (and spam folder) for a verification link. Click the link to verify your account, then return here to sign in."
@@ -118,6 +135,7 @@ export default function AuthGate({ children }) {
             </label>
             <input
               type="email"
+              autoComplete="email"
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -131,6 +149,7 @@ export default function AuthGate({ children }) {
             </label>
             <input
               type="password"
+              autoComplete={mode === "signup" ? "new-password" : "current-password"}
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -151,6 +170,7 @@ export default function AuthGate({ children }) {
               </label>
               <input
                 type="password"
+                autoComplete="new-password"
                 className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-slate-900"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -188,7 +208,8 @@ export default function AuthGate({ children }) {
           </button>
         </form>
 
-        <div className="flex items-center gap-2">
+        {/* Google Auth - Commented out for now, will scale later */}
+        {/* <div className="flex items-center gap-2">
           <div className="h-px flex-1 bg-slate-200" />
           <span className="text-[10px] uppercase tracking-wide text-slate-400">
             or
@@ -202,7 +223,7 @@ export default function AuthGate({ children }) {
           className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
         >
           <span>Continue with Google</span>
-        </button>
+        </button> */}
 
         <div className="space-y-1 text-xs text-slate-500">
           {mode === "signin" ? (

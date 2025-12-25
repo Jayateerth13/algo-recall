@@ -46,6 +46,22 @@ export function AuthProvider({ children }) {
     }
   }, [session]);
 
+  const signOut = async () => {
+    // Clear local state first
+    setSession(null);
+    setUser(null);
+    setAuthToken(null);
+    
+    // Try to sign out from Supabase, but don't fail if session is already invalid
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } catch (error) {
+      // Ignore errors - session might already be invalid/expired
+      // Local state is already cleared above
+      console.warn("Sign out error (ignored):", error);
+    }
+  };
+
   const value = {
     user,
     session,
@@ -54,7 +70,7 @@ export function AuthProvider({ children }) {
       supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } }),
     signIn: (email, password) => supabase.auth.signInWithPassword({ email, password }),
     signInWithGoogle: () => supabase.auth.signInWithOAuth({ provider: "google" }),
-    signOut: () => supabase.auth.signOut(),
+    signOut,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
