@@ -242,9 +242,11 @@ export default function AuthGate({ children }) {
               minLength={6}
               placeholder={mode === "signup" ? "Enter your password" : ""}
             />
-            <p className="text-[11px] text-slate-500">
-              Minimum 6 characters. Use a strong password.
-            </p>
+            {mode === "signup" && (
+              <p className="text-[11px] text-slate-500">
+                Minimum 6 characters. Use a strong password.
+              </p>
+            )}
           </div>
 
           {mode === "signup" && (

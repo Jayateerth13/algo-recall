@@ -315,12 +315,12 @@ export default function FlashcardReview() {
         </div>
       </div>
 
-      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-3 sm:p-4 shadow-sm">
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {schedule.map((dayBlock) => (
             <div
               key={dayBlock.day}
-              className="rounded-xl border border-slate-100 bg-slate-50/60 p-3"
+              className="rounded-xl border border-slate-100 bg-slate-50/60 p-2 sm:p-3 min-w-0"
             >
               <div className="mb-2 flex items-center justify-between text-sm">
                 <span className="font-bold text-slate-900">
@@ -354,7 +354,7 @@ export default function FlashcardReview() {
                   {dayBlock.problems.map((p) => {
                     const status = statusById[p.id];
                     const base =
-                      "flex items-center justify-between gap-2 rounded-lg border-2 px-4 py-2 text-[13px] cursor-pointer";
+                      "flex items-center justify-between gap-1.5 sm:gap-2 rounded-lg border-2 px-2 sm:px-4 py-1.5 sm:py-2 text-[13px] cursor-pointer min-w-0";
                     const colorClasses =
                       status === "remembered"
                         ? "bg-emerald-200 border-emerald-500 text-emerald-900"
@@ -379,10 +379,10 @@ export default function FlashcardReview() {
                         className={`${base} ${colorClasses} cursor-pointer`}
                         onClick={() => setSelectedId(p.id)}
                       >
-                        <span className="truncate">
+                        <span className="truncate min-w-0 flex-1">
                           {p.title}
                         </span>
-                        <span className="flex gap-1.5 items-center">
+                        <span className="flex gap-1 sm:gap-1.5 items-center flex-shrink-0">
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
