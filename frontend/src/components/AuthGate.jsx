@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function AuthGate({ children }) {
@@ -10,6 +10,18 @@ export default function AuthGate({ children }) {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Clear form state when user logs out
+  useEffect(() => {
+    if (!user && !loading) {
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setError("");
+      setInfo("");
+      setMode("signin");
+    }
+  }, [user, loading]);
 
   if (loading) {
     return (
@@ -58,8 +70,13 @@ export default function AuthGate({ children }) {
         if (supaError) {
           setError(supaError.message);
         } else {
-          setInfo("Check your email to verify your account, then sign in.");
+          setInfo(
+            "Account created! Please check your email inbox (and spam folder) for a verification link. Click the link to verify your account, then return here to sign in."
+          );
           setMode("signin");
+          setEmail("");
+          setPassword("");
+          setConfirmPassword("");
         }
       }
     } finally {
@@ -119,6 +136,7 @@ export default function AuthGate({ children }) {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
+              placeholder={mode === "signup" ? "Enter your password" : ""}
             />
             <p className="text-[11px] text-slate-500">
               Minimum 6 characters. Use a strong password.
@@ -128,7 +146,8 @@ export default function AuthGate({ children }) {
           {mode === "signup" && (
             <div className="space-y-1">
               <label className="block text-xs font-medium text-slate-700">
-                Confirm password
+                Re-enter Password
+                <span className="text-red-500 ml-1">*</span>
               </label>
               <input
                 type="password"
@@ -137,7 +156,11 @@ export default function AuthGate({ children }) {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={6}
+                placeholder="Re-enter your password to confirm"
               />
+              <p className="text-[11px] text-slate-500">
+                Please re-enter your password to ensure it matches.
+              </p>
             </div>
           )}
 
@@ -147,9 +170,9 @@ export default function AuthGate({ children }) {
             </p>
           )}
           {info && (
-            <p className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded px-2 py-1">
-              {info}
-            </p>
+            <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2 space-y-1">
+              <p className="font-medium">✓ {info}</p>
+            </div>
           )}
 
           <button
@@ -206,9 +229,14 @@ export default function AuthGate({ children }) {
             </p>
           )}
           {mode === "signup" && (
-            <p className="text-[11px] text-slate-500">
-              After signing up, check your email to verify before signing in.
-            </p>
+            <div className="space-y-1">
+              <p className="text-[11px] text-slate-600 font-medium">
+                📧 Email Verification Required
+              </p>
+              <p className="text-[11px] text-slate-500">
+                After creating your account, you'll receive a verification email. Click the link in that email to activate your account, then return here to sign in.
+              </p>
+            </div>
           )}
         </div>
       </div>
