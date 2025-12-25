@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function AuthGate({ children }) {
-  const { user, loading, signIn, signUp, signInWithGoogle } = useAuth();
+  const { user, loading, signIn, signUp, signInWithGoogle, resendVerificationEmail, signOut } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -10,6 +10,7 @@ export default function AuthGate({ children }) {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
 
   // Clear form state when user logs out
   useEffect(() => {
@@ -31,8 +32,92 @@ export default function AuthGate({ children }) {
     );
   }
 
-  if (user) {
+  // Check if user is logged in but email is not verified
+  const isEmailVerified = user?.email_confirmed_at !== null && user?.email_confirmed_at !== undefined;
+  
+  if (user && isEmailVerified) {
     return children;
+  }
+
+  // Show email verification screen if user is logged in but email is not verified
+  if (user && !isEmailVerified) {
+    const handleResendEmail = async () => {
+      setResendingEmail(true);
+      setError("");
+      setInfo("");
+      const { error: resendError } = await resendVerificationEmail(user.email);
+      if (resendError) {
+        setError(resendError.message || "Failed to resend verification email. Please try again.");
+      } else {
+        setInfo("Verification email sent! Please check your inbox (and spam folder).");
+      }
+      setResendingEmail(false);
+    };
+
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+        <div className="w-full max-w-md rounded-lg bg-white shadow-sm border border-slate-200 p-6 space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white font-bold text-sm">
+              AR
+            </span>
+            <div>
+              <h1 className="text-base font-semibold text-slate-900">
+                AlgoRecall
+              </h1>
+              <p className="text-xs text-slate-500">
+                Email verification required
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="text-xs text-slate-700 space-y-2">
+              <p className="font-medium text-slate-900">
+                📧 Please verify your email address
+              </p>
+              <p>
+                We've sent a verification link to <span className="font-medium text-slate-900">{user.email}</span>. 
+                Please check your inbox (and spam folder) and click the link to verify your account.
+              </p>
+            </div>
+
+            {error && (
+              <p className="text-xs text-red-600 bg-red-50 border border-red-100 rounded px-2 py-1">
+                {error}
+              </p>
+            )}
+            {info && (
+              <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-3 py-2 space-y-1">
+                <p className="font-medium">✓ {info}</p>
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleResendEmail}
+                disabled={resendingEmail}
+                className="flex-1 inline-flex items-center justify-center rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+              >
+                {resendingEmail ? "Sending..." : "Resend Verification Email"}
+              </button>
+              <button
+                type="button"
+                onClick={signOut}
+                className="inline-flex items-center justify-center rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Sign Out
+              </button>
+            </div>
+
+            <p className="text-[11px] text-slate-500 text-center">
+              After verifying your email, refresh this page or sign in again.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   async function handleSubmit(e) {

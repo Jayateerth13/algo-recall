@@ -354,7 +354,7 @@ export default function FlashcardReview() {
                   {dayBlock.problems.map((p) => {
                     const status = statusById[p.id];
                     const base =
-                      "flex items-center justify-between gap-2 rounded-lg border-2 px-4 py-2 text-sm cursor-pointer font-medium";
+                      "flex items-center justify-between gap-2 rounded-lg border-2 px-4 py-2 text-[13px] cursor-pointer";
                     const colorClasses =
                       status === "remembered"
                         ? "bg-emerald-200 border-emerald-500 text-emerald-900"

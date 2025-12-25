@@ -13,6 +13,14 @@ export function AuthProvider({ children }) {
     let mounted = true;
 
     async function init() {
+      // Handle email verification callback (tokens in URL hash)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      if (hashParams.get('type') === 'recovery' || hashParams.get('type') === 'signup') {
+        // Supabase will automatically handle the tokens in the hash
+        // Clear the hash from URL after processing
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+
       const {
         data: { session: currentSession },
       } = await supabase.auth.getSession();
@@ -62,14 +70,40 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Get the redirect URL from environment variable or fall back to current origin
+  const getRedirectUrl = () => {
+    return import.meta.env.VITE_SITE_URL || window.location.origin;
+  };
+
+  const resendVerificationEmail = async (email) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+      options: {
+        emailRedirectTo: `${getRedirectUrl()}/`
+      }
+    });
+    return { error };
+  };
+
   const value = {
     user,
     session,
     loading,
     signUp: (email, password) =>
-      supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } }),
+      supabase.auth.signUp({ 
+        email, 
+        password, 
+        options: { emailRedirectTo: `${getRedirectUrl()}/` } 
+      }),
     signIn: (email, password) => supabase.auth.signInWithPassword({ email, password }),
-    signInWithGoogle: () => supabase.auth.signInWithOAuth({ provider: "google" }),
+    signInWithGoogle: () => supabase.auth.signInWithOAuth({ 
+      provider: "google",
+      options: {
+        redirectTo: `${getRedirectUrl()}/`
+      }
+    }),
+    resendVerificationEmail,
     signOut,
   };
 
