@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
+import ConfirmDialog from "./ConfirmDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 
 export default function FlashcardReview() {
   const [problems, setProblems] = useState([]);
@@ -15,6 +22,11 @@ export default function FlashcardReview() {
   // Per-session review status: problemId -> "remembered" | "forgot"
   const [statusById, setStatusById] = useState({});
   const [selectedId, setSelectedId] = useState(null);
+
+  // Dialog states
+  const [resetAllDialogOpen, setResetAllDialogOpen] = useState(false);
+  const [resetDayDialogOpen, setResetDayDialogOpen] = useState(false);
+  const [dayToReset, setDayToReset] = useState(null);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -95,20 +107,21 @@ export default function FlashcardReview() {
     setShuffleSeed((s) => s + 1);
   };
 
-  const handleResetAll = async () => {
-    const ok = window.confirm(
-      "Reset all remembered / not remembered selections? This will clear review history for all problems."
-    );
-    if (!ok) return;
+  const handleResetAllClick = () => {
+    setResetAllDialogOpen(true);
+  };
 
+  const handleResetAllConfirm = async () => {
     try {
       await Promise.all(
         problems.map((p) => api.put(`/reviews/${p.id}/reset`))
       );
       setStatusById({});
       setSelectedId(null);
+      setResetAllDialogOpen(false);
     } catch {
       setError("Failed to reset reviews. Try again.");
+      setResetAllDialogOpen(false);
     }
   };
 
@@ -128,25 +141,31 @@ export default function FlashcardReview() {
     }
   };
 
-  const resetDay = async (dayProblems) => {
-    const ok = window.confirm(
-      "Reset remembered / not remembered for all problems in this day? This will clear their review history."
-    );
-    if (!ok) return;
+  const resetDayClick = (dayProblems) => {
+    setDayToReset(dayProblems);
+    setResetDayDialogOpen(true);
+  };
+
+  const resetDayConfirm = async () => {
+    if (!dayToReset) return;
 
     try {
       await Promise.all(
-        dayProblems.map((p) => api.put(`/reviews/${p.id}/reset`))
+        dayToReset.map((p) => api.put(`/reviews/${p.id}/reset`))
       );
       setStatusById((prev) => {
         const next = { ...prev };
-        for (const p of dayProblems) {
+        for (const p of dayToReset) {
           delete next[p.id];
         }
         return next;
       });
+      setResetDayDialogOpen(false);
+      setDayToReset(null);
     } catch {
       setError("Failed to reset this day. Try again.");
+      setResetDayDialogOpen(false);
+      setDayToReset(null);
     }
   };
 
@@ -197,7 +216,7 @@ export default function FlashcardReview() {
             Flashcard Review
           </h2>
           <p className="text-sm text-slate-500">
-            Compact 30-day style sheet. Titles only; click any problem to see
+            Compact 30-day style sheet; click any problem to see
             full details.
           </p>
         </div>
@@ -281,7 +300,7 @@ export default function FlashcardReview() {
           </button>
           <button
             type="button"
-            onClick={handleResetAll}
+            onClick={handleResetAllClick}
             className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-100"
           >
             Reset
@@ -304,7 +323,7 @@ export default function FlashcardReview() {
                   {dayBlock.problems.length > 0 && (
                     <button
                       type="button"
-                      onClick={() => resetDay(dayBlock.problems)}
+                      onClick={() => resetDayClick(dayBlock.problems)}
                       className="rounded-full border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:bg-slate-100"
                       title="Reset this day"
                     >
@@ -333,7 +352,7 @@ export default function FlashcardReview() {
                     return (
                       <li
                         key={p.id}
-                        className={`${base} ${colorClasses}`}
+                        className={`${base} ${colorClasses} cursor-pointer`}
                         onClick={() => setSelectedId(p.id)}
                       >
                         <span className="truncate text-slate-800">
@@ -382,123 +401,152 @@ export default function FlashcardReview() {
         </div>
       </div>
 
-      {selectedProblem && (
-        <div
-          className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50"
-          onClick={() => setSelectedId(null)}
-        >
-          <div
-            className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setSelectedId(null)}
-              className="absolute right-3 top-3 rounded-full px-2 py-0.5 text-xs text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-            >
-              ✕
-            </button>
-            <div className="space-y-3 text-sm text-slate-700">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="text-base font-semibold text-slate-900 pr-6">
-                    {selectedProblem.title}
-                  </p>
-                  {selectedProblem.url && (
-                    <a
-                      href={selectedProblem.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-0.5 inline-block text-xs text-primary hover:underline"
-                    >
-                      Open on LeetCode
-                    </a>
-                  )}
+      <Dialog open={!!selectedProblem} onOpenChange={(open) => !open && setSelectedId(null)}>
+        <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto">
+          {selectedProblem && (
+            <>
+              <DialogHeader className="pr-10">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <DialogTitle className="text-lg font-semibold text-slate-900">
+                      {selectedProblem.title}
+                    </DialogTitle>
+                    {selectedProblem.url && (
+                      <a
+                        href={selectedProblem.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1 inline-block text-xs text-primary hover:underline"
+                      >
+                        Open on LeetCode
+                      </a>
+                    )}
+                  </div>
+                  <Link
+                    to={`/problems/${selectedProblem.id}/edit`}
+                    className="rounded-lg border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-100 whitespace-nowrap"
+                  >
+                    Edit
+                  </Link>
                 </div>
-                <Link
-                  to={`/problems/${selectedProblem.id}/edit`}
-                  className="rounded-lg border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
-                >
-                  Edit
-                </Link>
-              </div>
+              </DialogHeader>
 
-              {selectedProblem.notes && (
-                <div>
-                  <p className="font-medium text-slate-800 mb-0.5">Notes</p>
-                  <p className="whitespace-pre-line text-slate-600 max-h-32 overflow-auto">
-                    {selectedProblem.notes}
-                  </p>
-                </div>
-              )}
-
-              {selectedProblem.algorithm_steps && (
-                <div>
-                  <p className="font-medium text-slate-800 mb-0.5">
-                    Algorithm Steps
-                  </p>
-                  <p className="whitespace-pre-line text-slate-600 max-h-32 overflow-auto">
-                    {selectedProblem.algorithm_steps}
-                  </p>
-                </div>
-              )}
-
-              {(selectedProblem.time_complexity ||
-                selectedProblem.space_complexity) && (
-                <div className="flex gap-3 text-slate-600">
-                  {selectedProblem.time_complexity && (
-                    <p>
-                      <span className="font-medium">Time:</span>{" "}
-                      {selectedProblem.time_complexity}
+              <div className="space-y-4 text-sm text-slate-700">
+                {selectedProblem.notes ? (
+                  <div>
+                    <p className="font-medium text-slate-800 mb-1.5">Notes</p>
+                    <p className="whitespace-pre-line text-slate-600 max-h-48 overflow-auto rounded-md bg-slate-50 p-3 border border-slate-200">
+                      {selectedProblem.notes}
                     </p>
-                  )}
-                  {selectedProblem.space_complexity && (
-                    <p>
-                      <span className="font-medium">Space:</span>{" "}
-                      {selectedProblem.space_complexity}
+                  </div>
+                ) : (
+                  <div className="rounded-md bg-slate-50 border border-slate-200 p-4 text-center">
+                    <p className="text-slate-400 text-xs">No notes added yet</p>
+                  </div>
+                )}
+
+                {selectedProblem.algorithm_steps ? (
+                  <div>
+                    <p className="font-medium text-slate-800 mb-1.5">
+                      Algorithm Steps
                     </p>
-                  )}
-                </div>
-              )}
+                    <p className="whitespace-pre-line text-slate-600 max-h-48 overflow-auto rounded-md bg-slate-50 p-3 border border-slate-200">
+                      {selectedProblem.algorithm_steps}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-md bg-slate-50 border border-slate-200 p-4 text-center">
+                    <p className="text-slate-400 text-xs">No algorithm steps added yet</p>
+                  </div>
+                )}
 
-              {selectedProblem.code_snippet && (
-                <div>
-                  <p className="font-medium text-slate-800 mb-0.5">
-                    Code Snippet
-                  </p>
-                  <pre className="max-h-48 overflow-auto rounded-md bg-slate-900 p-3 text-[11px] text-slate-100">
-                    {selectedProblem.code_snippet}
-                  </pre>
-                </div>
-              )}
+                {(selectedProblem.time_complexity ||
+                  selectedProblem.space_complexity) ? (
+                  <div className="flex gap-4 text-slate-600">
+                    {selectedProblem.time_complexity && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium">Time:</span>
+                        <span>{selectedProblem.time_complexity}</span>
+                      </div>
+                    )}
+                    {selectedProblem.space_complexity && (
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium">Space:</span>
+                        <span>{selectedProblem.space_complexity}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="rounded-md bg-slate-50 border border-slate-200 p-4 text-center">
+                    <p className="text-slate-400 text-xs">No complexity analysis added yet</p>
+                  </div>
+                )}
 
-              <div className="pt-2 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => markStatus(selectedProblem.id, "remembered")}
-                  className="flex-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100"
-                >
-                  Mark remembered
-                </button>
-                <button
-                  type="button"
-                  onClick={() => markStatus(selectedProblem.id, "forgot")}
-                  className="flex-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100"
-                >
-                  Mark not remembered
-                </button>
-                <button
-                  type="button"
-                  onClick={() => resetProblem(selectedProblem.id)}
-                  className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
-                >
-                  Reset
-                </button>
+                {selectedProblem.code_snippet ? (
+                  <div>
+                    <p className="font-medium text-slate-800 mb-1.5">
+                      Code Snippet
+                    </p>
+                    <pre className="max-h-64 overflow-auto rounded-md bg-slate-900 p-4 text-xs text-slate-100 border border-slate-700">
+                      {selectedProblem.code_snippet}
+                    </pre>
+                  </div>
+                ) : (
+                  <div className="rounded-md bg-slate-50 border border-slate-200 p-4 text-center">
+                    <p className="text-slate-400 text-xs">No code snippet added yet</p>
+                  </div>
+                )}
+
+                <div className="pt-3 flex gap-2 border-t border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => markStatus(selectedProblem.id, "remembered")}
+                    className="flex-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100"
+                  >
+                    Mark remembered
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => markStatus(selectedProblem.id, "forgot")}
+                    className="flex-1 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+                  >
+                    Mark not remembered
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => resetProblem(selectedProblem.id)}
+                    className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                  >
+                    Reset
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={resetAllDialogOpen}
+        onOpenChange={setResetAllDialogOpen}
+        title="Reset All Reviews?"
+        description="This will clear review history for all problems. All remembered/not remembered selections will be reset."
+        confirmText="Reset All"
+        cancelText="Cancel"
+        onConfirm={handleResetAllConfirm}
+        variant="destructive"
+      />
+
+      <ConfirmDialog
+        open={resetDayDialogOpen}
+        onOpenChange={setResetDayDialogOpen}
+        title="Reset Day Reviews?"
+        description="This will clear review history for all problems in this day. All remembered/not remembered selections for these problems will be reset."
+        confirmText="Reset Day"
+        cancelText="Cancel"
+        onConfirm={resetDayConfirm}
+        variant="destructive"
+      />
     </div>
   );
 }

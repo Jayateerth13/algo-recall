@@ -37,7 +37,8 @@ def get_current_user(
             token,
             secret,
             algorithms=["HS256"],
-            options={"verify_aud": False},
+            options={"verify_aud": True},
+            audience="authenticated",  # Supabase's default audience
         )
     except JWTError:
         raise HTTPException(

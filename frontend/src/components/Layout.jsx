@@ -12,12 +12,12 @@ export default function Layout({ children }) {
       <header className="border-b bg-white">
         <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white font-bold">
-              LC
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white font-bold text-sm">
+              AR
             </span>
             <div>
               <h1 className="text-sm font-semibold">
-                LeetCode Algorithm Flashcards
+                AlgoRecall
               </h1>
               <p className="text-xs text-slate-500">
                 Practice patterns with spaced repetition
@@ -50,7 +50,7 @@ export default function Layout({ children }) {
             {user && (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-600">
-                  Signed in as <span className="font-medium text-slate-800">{user.email}</span>
+                  <span className="font-medium text-slate-800">{user.email}</span>
                 </span>
                 <button
                   onClick={() => signOut()}

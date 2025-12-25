@@ -81,12 +81,12 @@ export default function AuthGate({ children }) {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-md rounded-lg bg-white shadow-sm border border-slate-200 p-6 space-y-4">
         <div className="flex items-center gap-2 mb-2">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white font-bold">
-            LC
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white font-bold text-sm">
+            AR
           </span>
           <div>
             <h1 className="text-base font-semibold text-slate-900">
-              LeetCode Algorithm Flashcards
+              AlgoRecall
             </h1>
             <p className="text-xs text-slate-500">
               Sign in to see your personal flashcards & progress.

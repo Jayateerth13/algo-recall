@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import ConfirmDialog from "./ConfirmDialog";
 
 export default function ProblemLibrary() {
   const [problems, setProblems] = useState([]);
@@ -8,6 +9,8 @@ export default function ProblemLibrary() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [problemToDelete, setProblemToDelete] = useState(null);
   const navigate = useNavigate();
 
   const fetchProblems = async () => {
@@ -26,17 +29,23 @@ export default function ProblemLibrary() {
     fetchProblems();
   }, []);
 
-  const handleDelete = async (id) => {
-    const ok = window.confirm(
-      "Delete this problem? This cannot be undone (notes and history will be lost)."
-    );
-    if (!ok) return;
+  const handleDeleteClick = (id) => {
+    setProblemToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!problemToDelete) return;
 
     try {
-      await api.delete(`/problems/${id}`);
+      await api.delete(`/problems/${problemToDelete}`);
       await fetchProblems();
+      setDeleteDialogOpen(false);
+      setProblemToDelete(null);
     } catch {
       setError("Failed to delete problem. Try again.");
+      setDeleteDialogOpen(false);
+      setProblemToDelete(null);
     }
   };
 
@@ -156,7 +165,7 @@ export default function ProblemLibrary() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDelete(p.id)}
+                        onClick={() => handleDeleteClick(p.id)}
                         className="rounded border border-red-200 px-2 py-0.5 text-[11px] font-medium text-red-600 hover:bg-red-50"
                       >
                         Delete
@@ -169,6 +178,17 @@ export default function ProblemLibrary() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Problem?"
+        description="This cannot be undone. All notes and review history for this problem will be permanently lost."
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleDeleteConfirm}
+        variant="destructive"
+      />
     </div>
   );
 }

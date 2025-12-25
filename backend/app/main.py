@@ -20,10 +20,22 @@ def create_app() -> FastAPI:
         ),
     )
 
-    # CORS configuration - use environment variable or default to allow all for dev
-    cors_origins = os.getenv("CORS_ORIGINS", "*")
-    if cors_origins == "*":
-        allow_origins = ["*"]
+    # CORS configuration - require explicit origins in production
+    cors_origins = os.getenv("CORS_ORIGINS")
+    if not cors_origins:
+        # For local development, allow common dev ports
+        # In production, CORS_ORIGINS must be set!
+        if os.getenv("ENVIRONMENT") != "production":
+            allow_origins = [
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "http://127.0.0.1:3000",
+            ]
+        else:
+            raise ValueError(
+                "CORS_ORIGINS environment variable must be set in production!"
+            )
     else:
         # Split comma-separated origins
         allow_origins = [origin.strip() for origin in cors_origins.split(",")]
