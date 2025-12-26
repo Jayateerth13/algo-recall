@@ -6,31 +6,8 @@ from sqlalchemy.orm import Session
 from .. import models, schemas
 from ..auth import CurrentUser, get_current_user
 from ..database import get_db
-from ..seed import PROBLEMS_FILE, SECTION_HEADINGS
 
 router = APIRouter()
-
-
-def _ensure_seeded_for_user(db: Session, user_id: str) -> None:
-    """
-    Seed initial problems for a given user if they have none yet.
-
-    This mirrors the old global seeding logic but uses the supplied DB session
-    and associates each problem with the Supabase user id.
-    """
-    has_any = db.query(models.Problem).filter(models.Problem.user_id == user_id).first()
-    if has_any or not PROBLEMS_FILE.exists():
-        return
-
-    for line in PROBLEMS_FILE.read_text(encoding="utf-8").splitlines():
-        title = line.strip()
-        if not title or title in SECTION_HEADINGS:
-            continue
-
-        problem = models.Problem(title=title, user_id=user_id)
-        db.add(problem)
-
-    db.commit()
 
 
 @router.get("/", response_model=List[schemas.ProblemWithReview])
@@ -41,9 +18,12 @@ def list_problems(
     tag: Optional[str] = Query(None),
     platform: Optional[str] = Query(None),
 ):
-    # Ensure this user has their initial problem set.
-    _ensure_seeded_for_user(db, current_user.id)
-
+    """
+    List all problems for the current user.
+    
+    Note: Problems are automatically seeded for new users via database trigger
+    when they sign up. No manual seeding is required.
+    """
     query = db.query(models.Problem).filter(
         models.Problem.user_id == current_user.id
     )

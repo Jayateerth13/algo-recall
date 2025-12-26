@@ -71,3 +71,22 @@ class ReviewMetadata(Base):
     problem = relationship("Problem", back_populates="review_metadata")
 
 
+class ProblemTemplate(Base):
+    """Template problems that are copied to new users automatically via database trigger."""
+    __tablename__ = "problem_templates"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False, index=True)
+    url = Column(String, nullable=True)
+    difficulty = Column(String, nullable=True, index=True)  # easy/medium/hard
+    platform = Column(String, default="leetcode", index=True)
+    notes = Column(Text, nullable=True)
+    algorithm_steps = Column(Text, nullable=True)
+    time_complexity = Column(String, nullable=True)
+    space_complexity = Column(String, nullable=True)
+    code_snippet = Column(Text, nullable=True)
+    tags = Column(JSON_COLUMN, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+

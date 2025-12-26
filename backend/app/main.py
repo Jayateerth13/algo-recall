@@ -7,7 +7,6 @@ from . import models  # noqa: F401  # imported for side-effects (SQLAlchemy mode
 from .database import init_db, ensure_user_columns, DATABASE_URL
 from .routers import problems, reviews, import_routes
 from .health import router as health_router
-from .seed import seed_problems_from_list
 
 
 def create_app() -> FastAPI:
@@ -61,10 +60,8 @@ def create_app() -> FastAPI:
         # Ensure per-user columns exist
         ensure_user_columns()
 
-        # For local SQLite development, seed once globally.
-        # For managed Postgres (Supabase), we seed per-user in the API layer instead.
-        if not DATABASE_URL:
-            seed_problems_from_list()
+        # Note: Problem seeding is now handled by database trigger in Supabase.
+        # The trigger automatically seeds 150 problems for new users when they sign up.
 
     return app
 
