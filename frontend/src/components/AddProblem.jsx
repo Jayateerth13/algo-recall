@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import api from "../services/api";
+import Toast from "./Toast";
 
 export default function AddProblem() {
   const navigate = useNavigate();
@@ -15,12 +16,11 @@ export default function AddProblem() {
   const [codeSnippet, setCodeSnippet] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [showToast, setShowToast] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
 
     if (!title.trim()) {
       setError("Title is required.");
@@ -48,8 +48,7 @@ export default function AddProblem() {
     try {
       setSaving(true);
       await api.post("/problems", payload);
-      setSuccess("Problem saved. Redirecting to library...");
-      setTimeout(() => navigate("/problems"), 600);
+      setShowToast(true);
     } catch (err) {
       setError("Failed to save problem. Check server and try again.");
     } finally {
@@ -58,8 +57,14 @@ export default function AddProblem() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-2">
+    <>
+      <Toast
+        message="Notes and patterns added successfully!"
+        show={showToast}
+        onClose={() => setShowToast(false)}
+      />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between gap-2">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">
             Add New Problem
@@ -82,11 +87,6 @@ export default function AddProblem() {
           {error && (
             <div className="rounded-md bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
               {error}
-            </div>
-          )}
-          {success && (
-            <div className="rounded-md bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-700">
-              {success}
             </div>
           )}
           <section className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -242,6 +242,7 @@ export default function AddProblem() {
         </form>
       </div>
     </div>
+    </>
   );
 }
 

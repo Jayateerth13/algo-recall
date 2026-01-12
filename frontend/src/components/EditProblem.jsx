@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../services/api";
+import Toast from "./Toast";
 
 export default function EditProblem() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export default function EditProblem() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -71,7 +73,7 @@ export default function EditProblem() {
     try {
       setSaving(true);
       await api.put(`/problems/${id}`, payload);
-      navigate("/problems");
+      setShowToast(true);
     } catch {
       setError("Failed to update problem. Try again.");
     } finally {
@@ -102,8 +104,14 @@ export default function EditProblem() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-2">
+    <>
+      <Toast
+        message="Notes and patterns updated successfully!"
+        show={showToast}
+        onClose={() => setShowToast(false)}
+      />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between gap-2">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Edit Problem</h2>
           <p className="text-sm text-slate-500">
@@ -276,6 +284,7 @@ export default function EditProblem() {
         </form>
       </div>
     </div>
+    </>
   );
 }
 

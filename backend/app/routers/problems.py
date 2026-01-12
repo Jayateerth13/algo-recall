@@ -35,7 +35,7 @@ def list_problems(
     if tag:
         query = query.filter(models.Problem.tags.contains([tag]))
 
-    return query.all()
+    return query.order_by(models.Problem.id).all()
 
 
 @router.get("/{problem_id}", response_model=schemas.ProblemWithReview)

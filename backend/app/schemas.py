@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Literal, Optional
 
-from pydantic import BaseModel, HttpUrl, field_validator
+from pydantic import BaseModel, field_validator
 
 ReviewResult = Literal["remembered", "forgot"]
 Difficulty = Literal["easy", "medium", "hard"]
@@ -9,7 +9,7 @@ Difficulty = Literal["easy", "medium", "hard"]
 
 class ProblemBase(BaseModel):
     title: str
-    url: Optional[HttpUrl] = None
+    url: Optional[str] = None
     difficulty: Optional[Difficulty] = None
     platform: Optional[str] = "leetcode"
     notes: Optional[str] = None
